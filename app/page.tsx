@@ -1,12 +1,26 @@
-'use client';
+"use client";
 
-import { useState, useRef, useCallback } from 'react';
-import { Upload, FileAudio, Play, Pause, RotateCcw, CheckCircle, XCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
+import { useState, useRef, useCallback } from "react";
+import {
+  Upload,
+  FileAudio,
+  Play,
+  Pause,
+  RotateCcw,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
 
 interface TranscriptionResult {
   text: string;
@@ -23,51 +37,63 @@ export default function Home() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  
+
   const audioRef = useRef<HTMLAudioElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const acceptedFormats = ['.mp3', '.wav', '.m4a', '.flac', '.ogg'];
+  const acceptedFormats = [".mp3", ".wav", ".m4a", ".flac", ".ogg"];
 
-  const handleFileSelect = useCallback((selectedFile: File) => {
-    if (!selectedFile) return;
+  const handleFileSelect = useCallback(
+    (selectedFile: File) => {
+      if (!selectedFile) return;
 
-    const fileExtension = '.' + selectedFile.name.split('.').pop()?.toLowerCase();
-    if (!acceptedFormats.includes(fileExtension)) {
-      setError(`Unsupported file format. Please use: ${acceptedFormats.join(', ')}`);
-      return;
-    }
+      const fileExtension =
+        "." + selectedFile.name.split(".").pop()?.toLowerCase();
+      if (!acceptedFormats.includes(fileExtension)) {
+        setError(
+          `Unsupported file format. Please use: ${acceptedFormats.join(", ")}`
+        );
+        return;
+      }
 
-    setFile(selectedFile);
-    setError(null);
-    setResult(null);
-    setProgress(0);
+      setFile(selectedFile);
+      setError(null);
+      setResult(null);
+      setProgress(0);
 
-    // Create audio URL for preview
-    const url = URL.createObjectURL(selectedFile);
-    if (audioRef.current) {
-      audioRef.current.src = url;
-    }
-  }, [acceptedFormats]);
+      // Create audio URL for preview
+      const url = URL.createObjectURL(selectedFile);
+      if (audioRef.current) {
+        audioRef.current.src = url;
+      }
+    },
+    [acceptedFormats]
+  );
 
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) {
-      handleFileSelect(droppedFile);
-    }
-  }, [handleFileSelect]);
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      const droppedFile = e.dataTransfer.files[0];
+      if (droppedFile) {
+        handleFileSelect(droppedFile);
+      }
+    },
+    [handleFileSelect]
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
   }, []);
 
-  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      handleFileSelect(selectedFile);
-    }
-  }, [handleFileSelect]);
+  const handleFileInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFile = e.target.files?.[0];
+      if (selectedFile) {
+        handleFileSelect(selectedFile);
+      }
+    },
+    [handleFileSelect]
+  );
 
   const transcribeAudio = async () => {
     if (!file) return;
@@ -78,12 +104,12 @@ export default function Home() {
 
     try {
       const formData = new FormData();
-      formData.append('audio', file);
+      formData.append("audio", file);
 
       // Simulate progress
       const progressInterval = setInterval(() => {
-        console.log("Test Simulate Progess")
-        setProgress(prev => {
+        console.log("Test Simulate Progess");
+        setProgress((prev) => {
           if (prev >= 90) {
             clearInterval(progressInterval);
             return 90;
@@ -92,9 +118,8 @@ export default function Home() {
         });
       }, 500);
 
-
-      const response = await fetch('http://localhost:8000/transcribe', {
-        method: 'POST',
+      const response = await fetch("http://localhost:8000/transcribe", {
+        method: "POST",
         body: formData,
       });
 
@@ -102,7 +127,7 @@ export default function Home() {
       setProgress(100);
 
       if (!response.ok) {
-        throw new Error('Transcription failed');
+        throw new Error("Transcription failed");
       }
 
       const data = await response.json();
@@ -113,8 +138,12 @@ export default function Home() {
         duration: data.duration || 0,
       });
     } catch (err) {
-      console.error(`The ERROR is: ${err}`)
-      setError(err instanceof Error ? err.message : 'An error occurred during transcription');
+      console.error(`The ERROR is: ${err}`);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred during transcription"
+      );
     } finally {
       setIsTranscribing(false);
     }
@@ -140,17 +169,17 @@ export default function Home() {
     setCurrentTime(0);
     setDuration(0);
     if (audioRef.current) {
-      audioRef.current.src = '';
+      audioRef.current.src = "";
     }
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -161,14 +190,17 @@ export default function Home() {
             Thai Audio Transcription
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Upload your audio file and get accurate Thai transcription using our advanced FastConformer ASR model
+            Upload your audio file and get accurate Thai transcription using our
+            advanced FastConformer ASR model
           </p>
         </div>
 
         {/* File Upload Section */}
         <Card className="mb-8 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-gray-800">Upload Audio File</CardTitle>
+            <CardTitle className="text-2xl text-gray-800">
+              Upload Audio File
+            </CardTitle>
             <CardDescription className="text-lg">
               Drag and drop your audio file or click to browse
             </CardDescription>
@@ -183,16 +215,18 @@ export default function Home() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept={acceptedFormats.join(',')}
+                accept={acceptedFormats.join(",")}
                 onChange={handleFileInputChange}
                 className="hidden"
               />
-              
+
               {file ? (
                 <div className="space-y-4">
                   <FileAudio className="mx-auto h-12 w-12 text-blue-500" />
                   <div>
-                    <p className="text-lg font-medium text-gray-900">{file.name}</p>
+                    <p className="text-lg font-medium text-gray-900">
+                      {file.name}
+                    </p>
                     <p className="text-sm text-gray-500">
                       {(file.size / (1024 * 1024)).toFixed(2)} MB
                     </p>
@@ -206,7 +240,7 @@ export default function Home() {
                       Drop your audio file here
                     </p>
                     <p className="text-sm text-gray-500">
-                      Supported formats: {acceptedFormats.join(', ')}
+                      Supported formats: {acceptedFormats.join(", ")}
                     </p>
                   </div>
                 </div>
@@ -230,7 +264,7 @@ export default function Home() {
                   onEnded={() => setIsPlaying(false)}
                   className="hidden"
                 />
-                
+
                 <div className="flex items-center justify-center space-x-4">
                   <Button
                     variant="outline"
@@ -243,18 +277,14 @@ export default function Home() {
                     ) : (
                       <Play className="h-4 w-4 mr-2" />
                     )}
-                    {isPlaying ? 'Pause' : 'Play'}
+                    {isPlaying ? "Pause" : "Play"}
                   </Button>
-                  
+
                   <span className="text-sm text-gray-500">
                     {formatTime(currentTime)} / {formatTime(duration)}
                   </span>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={resetAll}
-                  >
+
+                  <Button variant="outline" size="sm" onClick={resetAll}>
                     <RotateCcw className="h-4 w-4 mr-2" />
                     Reset
                   </Button>
@@ -272,7 +302,7 @@ export default function Home() {
                         Transcribing...
                       </>
                     ) : (
-                      'Start Transcription'
+                      "Start Transcription"
                     )}
                   </Button>
                 </div>
@@ -287,7 +317,9 @@ export default function Home() {
             <CardContent className="pt-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Processing Audio</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    Processing Audio
+                  </span>
                   <span className="text-sm text-gray-500">{progress}%</span>
                 </div>
                 <Progress value={progress} className="h-2" />
@@ -314,7 +346,9 @@ export default function Home() {
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl text-gray-800">Transcription Result</CardTitle>
+                <CardTitle className="text-2xl text-gray-800">
+                  Transcription Result
+                </CardTitle>
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="h-5 w-5 text-green-500" />
                   <span className="text-sm text-gray-600">
@@ -326,22 +360,30 @@ export default function Home() {
             <CardContent>
               <div className="space-y-6">
                 <div className="bg-gray-50 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Thai Transcription</h3>
-                  <p className="text-xl leading-relaxed text-gray-900 font-thai">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    Thai Transcription
+                  </h3>
+                  <div className="text-xl leading-relaxed text-gray-900 font-thai whitespace-pre-line">
                     {result.text}
-                  </p>
+                  </div>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="font-medium text-gray-700">Duration:</span>
-                    <span className="ml-2 text-gray-600">{formatTime(result.duration)}</span>
+                    <span className="ml-2 text-gray-600">
+                      {formatTime(result.duration)}
+                    </span>
                   </div>
                   <div>
-                    <span className="font-medium text-gray-700">Confidence:</span>
-                    <span className="ml-2 text-gray-600">{(result.confidence * 100).toFixed(1)}%</span>
+                    <span className="font-medium text-gray-700">
+                      Confidence:
+                    </span>
+                    <span className="ml-2 text-gray-600">
+                      {(result.confidence * 100).toFixed(1)}%
+                    </span>
                   </div>
                 </div>
               </div>
