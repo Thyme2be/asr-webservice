@@ -36,7 +36,8 @@ yarn-error.log*
 next-env.d.ts
 
 # model
-/backend/model
+/backend/model/stt_th_fastconformer_ctc_large_nacc_data.nemo
+/backend/model/stt_th_fastconformer_ctc_large_nacc_data.nemo:Zone.Identifier
 
 # sample sound
 /backend/sound
