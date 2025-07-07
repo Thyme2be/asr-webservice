@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Thai ASR Transcription API",
     description="FastAPI backend for Thai audio transcription using FastConformer",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Add CORS middleware
@@ -29,11 +29,25 @@ app.add_middleware(
 # For example:
 # from your_model_module import FastConformerModel
 # model = FastConformerModel.load_pretrained("path/to/your/model")
+import nemo.collections.asr as nemo_asr
+
+asr_model = nemo_asr.models.EncDecCTCModelBPE.restore_from(
+    "model/stt_th_fastconformer_ctc_large_nacc_data.nemo"
+)
+
 
 @app.get("/")
 async def root():
     """Health check endpoint"""
     return {"message": "Thai ASR Transcription API is running"}
+
+
+@app.middleware("http")
+async def log_requests(request, call_next):
+    logger.info(f"Incoming request: {request.method} {request.url}")
+    response = await call_next(request)
+    return response
+
 
 @app.post("/transcribe")
 async def transcribe_audio(audio: UploadFile = File(...)) -> Dict[str, Any]:
@@ -43,14 +57,17 @@ async def transcribe_audio(audio: UploadFile = File(...)) -> Dict[str, Any]:
     try:
         # Validate file type
         allowed_types = [
-            "audio/mpeg", "audio/wav", "audio/mp4", 
-            "audio/flac", "audio/ogg", "audio/x-wav"
+            "audio/mpeg",
+            "audio/wav",
+            "audio/mp4",
+            "audio/flac",
+            "audio/ogg",
+            "audio/x-wav",
         ]
-        
+
         if audio.content_type not in allowed_types:
             raise HTTPException(
-                status_code=400, 
-                detail=f"Unsupported file type: {audio.content_type}"
+                status_code=400, detail=f"Unsupported file type: {audio.content_type}"
             )
 
         # Create temporary file
@@ -65,39 +82,47 @@ async def transcribe_audio(audio: UploadFile = File(...)) -> Dict[str, Any]:
             # For demonstration, we'll return a mock response
             # In a real implementation, you would do:
             # transcription_result = model.transcribe(temp_file_path)
-            
+            transcription_result = asr_model.transcribe([temp_file_path])
+
             # Mock transcription result (replace with actual model inference)
-            mock_thai_text = "สวัสดีครับ นี่คือตัวอย่างการแปลงเสียงพูดเป็นข้อความภาษาไทย"
-            
+            th_transcibe_text = transcription_result[0].text
+            print(f"TRANSCRIBE SUCCESSS: {th_transcibe_text}")
+
             # Calculate audio duration (you might want to use librosa or similar)
             # For now, we'll use a mock duration
             duration = 10.5  # seconds
-            
+
             result = {
-                "text": mock_thai_text,
+                "text": th_transcibe_text,
                 "confidence": 0.95,
                 "duration": duration,
                 "model": "FastConformer",
-                "language": "th"
+                "language": "th",
             }
-            
+
             logger.info(f"Transcription completed for file: {audio.filename}")
             return result
-            
+
         finally:
             # Clean up temporary file
             if os.path.exists(temp_file_path):
                 os.unlink(temp_file_path)
-                
+
     except Exception as e:
+        import traceback
+
         logger.error(f"Transcription error: {str(e)}")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
+
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "service": "Thai ASR API"}
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -82,6 +82,7 @@ export default function Home() {
 
       // Simulate progress
       const progressInterval = setInterval(() => {
+        console.log("Test Simulate Progess")
         setProgress(prev => {
           if (prev >= 90) {
             clearInterval(progressInterval);
@@ -91,7 +92,8 @@ export default function Home() {
         });
       }, 500);
 
-      const response = await fetch('/api/transcribe', {
+
+      const response = await fetch('http://localhost:8000/transcribe', {
         method: 'POST',
         body: formData,
       });
@@ -104,12 +106,14 @@ export default function Home() {
       }
 
       const data = await response.json();
+      console.log("Raw data from backend:", data);
       setResult({
-        text: data.transcription,
+        text: data.text,
         confidence: data.confidence || 0.95,
         duration: data.duration || 0,
       });
     } catch (err) {
+      console.error(`The ERROR is: ${err}`)
       setError(err instanceof Error ? err.message : 'An error occurred during transcription');
     } finally {
       setIsTranscribing(false);
