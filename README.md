@@ -1,7 +1,7 @@
 asr-webservice
 
 # **Import Model Before Running Backend!**
-- Add model `stt_th_fastconformer_ctc_large_nacc_data.nemo` into `/backend/models` folder
+- Add model `stt_th_fastconformer_ctc_large_nacc_data.nemo` into `/backend/model` folder
 
 # Setup **Front-end** Development
 - Run **Front-end** at `root` folder using `npm install && npm run dev`
