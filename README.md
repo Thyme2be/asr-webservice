@@ -7,5 +7,7 @@ asr-webservice
 - Run **Front-end** at `root` folder using `npm install && npm run dev`
 
 # Setup **Back-end** Development
+- Use `WSL` to run command
+- Install `Nemo` with `Conda` environment
 - Install requirement in **Back-end** at `root/backend` folder using `pip install -r requirements.txt`
 - Run **Back-end** at `root/backend` folder using `uvicorn main:app --reload`
